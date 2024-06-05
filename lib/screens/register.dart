@@ -1,28 +1,21 @@
-// ignore_for_file: use_build_context_synchronously
+import '/controllers/register_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:note/models/response.dart';
-import 'package:note/models/user.dart';
-import 'package:note/screens/show_notes.dart';
+import '/screens/show_notes.dart';
+import 'package:get/get.dart';
+import '../models/user.dart';
 import '../api.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
-}
-
-class _RegisterPageState extends State<RegisterPage> {
-  var userNameController = TextEditingController();
-  var userPassController = TextEditingController();
-  var userRePassController = TextEditingController();
-
-  String errorUserName = "";
-  String errorUserPass = "";
-  String errorUserRePass = "";
-
-  @override
   Widget build(BuildContext context) {
+    var controller = Get.put(RegisterController());
+
+    var userNameController = TextEditingController();
+    var userPassController = TextEditingController();
+    var userRePassController = TextEditingController();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register Page'),
@@ -35,45 +28,56 @@ class _RegisterPageState extends State<RegisterPage> {
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              textAlign: TextAlign.center,
-              controller: userNameController,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                label: const Text('User Name'),
-                hintText: 'Enter Your Chosen User Name',
-                errorText: (errorUserName.isNotEmpty) ? errorUserName : null,
+            child: Obx(
+              () => TextField(
+                textAlign: TextAlign.center,
+                controller: userNameController,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  label: const Text('User Name'),
+                  hintText: 'Enter Your Chosen User Name',
+                  errorText: (controller.errorUserName.isNotEmpty)
+                      ? controller.errorUserName.value
+                      : null,
+                ),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              textAlign: TextAlign.center,
-              controller: userPassController,
-              obscureText: true,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                alignLabelWithHint: true,
-                label: const Text('User Pass'),
-                hintText: 'Enter Your Chosen Password',
-                errorText: (errorUserPass.isNotEmpty) ? errorUserPass : null,
+            child: Obx(
+              () => TextField(
+                textAlign: TextAlign.center,
+                controller: userPassController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                  label: const Text('User Pass'),
+                  hintText: 'Enter Your Chosen Password',
+                  errorText: (controller.errorUserPass.isNotEmpty)
+                      ? controller.errorUserPass.value
+                      : null,
+                ),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              textAlign: TextAlign.center,
-              controller: userRePassController,
-              obscureText: true,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                alignLabelWithHint: true,
-                label: const Text('User Pass Again'),
-                hintText: 'Enter Your Chosen Password Again',
-                errorText:
-                    (errorUserRePass.isNotEmpty) ? errorUserRePass : null,
+            child: Obx(
+              () => TextField(
+                textAlign: TextAlign.center,
+                controller: userRePassController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                  label: const Text('User Pass Again'),
+                  hintText: 'Enter Your Chosen Password Again',
+                  errorText: (controller.errorUserRePass.isNotEmpty)
+                      ? controller.errorUserRePass.value
+                      : null,
+                ),
               ),
             ),
           ),
@@ -87,20 +91,20 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             child: const Text('REGISTER'),
             onPressed: () async {
-              errorUserName = "";
-              errorUserPass = "";
-              errorUserRePass = "";
+              controller.errorUserName.value = "";
+              controller.errorUserPass.value = "";
+              controller.errorUserRePass.value = "";
               if (userNameController.text.length < 4) {
-                setState(() => errorUserName = "User Name Is Short");
+                controller.errorUserName.value = "User Name Is Short";
                 return;
               }
               if (userPassController.text.length < 8) {
-                setState(() => errorUserPass = "Password Is Short");
+                controller.errorUserPass.value = "Password Is Short";
                 return;
               }
               if (userPassController.text != userRePassController.text) {
-                setState(() =>
-                    errorUserRePass = "Password and Re Password Not Equal");
+                controller.errorUserRePass.value =
+                    "Password and Re Password Not Equal";
                 return;
               }
 
@@ -110,23 +114,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 userPassController.text,
               );
 
-              RegisterResponse registerResponse =
-                  await ApiNote.createUser(user);
+              String registerResponse = await ApiNote.createUser(user);
 
-              switch (registerResponse.message) {
+              switch (registerResponse) {
                 case "WeHaveThisUserName":
-                  setState(() => errorUserName = "We Have This UserName");
+                  controller.errorUserName.value = "We Have This UserName";
                 case "UserCreated":
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ShowUserNote(
-                        userModel: user,
-                        notes: const [],
-                        isAdmin: false,
-                        users: const [],
-                      ),
-                    ),
-                  );
+                  Get.to(() => const ShowUserNote());
               }
             },
           ),
@@ -140,9 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             child: const Text('Login'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),

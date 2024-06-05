@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Note {
   int id = 0;
   String title;
@@ -6,6 +8,14 @@ class Note {
   int noteConnect = 0;
 
   Note(this.id, this.title, this.content, this.color, this.noteConnect);
+
+  static Note empty() => Note(
+        -1,
+        "",
+        "",
+        Colors.white.value.toRadixString(16),
+        0,
+      );
 
   static Note fromJson(Map<String, dynamic> data) => Note(
         data['noteId'],

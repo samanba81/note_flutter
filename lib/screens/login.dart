@@ -1,11 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
-
+import '../controllers/holder_user_controller.dart';
+import '../controllers/show_note_controller.dart';
+import '../controllers/login_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:note/screens/show_notes.dart';
-import '../models/response.dart';
+import 'package:get/get.dart';
 import '../models/user.dart';
+import 'show_notes.dart';
 import 'register.dart';
-import '../api.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,14 +15,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  var userNameController = TextEditingController();
-  var userPassController = TextEditingController();
-
-  String errorUserName = "";
-  String errorUserPass = "";
+  TextEditingController userNameController = TextEditingController();
+  TextEditingController userPassController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final LoginController loginController = Get.put(LoginController());
+    final HolderUserController holder = Get.put(HolderUserController());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login Page'),
@@ -35,29 +34,37 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              textAlign: TextAlign.center,
-              controller: userNameController,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                label: const Text('UserName'),
-                hintText: 'Enter Your User Name',
-                errorText: (errorUserName.isNotEmpty) ? errorUserName : null,
+            child: Obx(
+              () => TextField(
+                textAlign: TextAlign.center,
+                controller: userNameController,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  label: const Text('UserName'),
+                  hintText: 'Enter Your User Name',
+                  errorText: (loginController.errorUserName.isNotEmpty)
+                      ? loginController.errorUserName.value
+                      : null,
+                ),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              textAlign: TextAlign.center,
-              controller: userPassController,
-              obscureText: true,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                alignLabelWithHint: true,
-                label: const Text('UserPass'),
-                hintText: 'Enter Your Password',
-                errorText: (errorUserPass.isNotEmpty) ? errorUserPass : null,
+            child: Obx(
+              () => TextField(
+                textAlign: TextAlign.center,
+                controller: userPassController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                  label: const Text('UserPass'),
+                  hintText: 'Enter Your Password',
+                  errorText: (loginController.errorUserPass.isNotEmpty)
+                      ? loginController.errorUserPass.value
+                      : null,
+                ),
               ),
             ),
           ),
@@ -71,48 +78,34 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: const Text('LOGIN'),
             onPressed: () async {
-              errorUserName = "";
-              errorUserPass = "";
+              loginController.errorUserName.value = "";
+              loginController.errorUserPass.value = "";
               User user = User(
                 0,
                 userNameController.text,
                 userPassController.text,
               );
 
-              LoginResponse loginResponse = await ApiNote.getNotes(user);
+              holder.user.value = user;
 
-              switch (loginResponse.message) {
-                case "UserNotExist":
-                  setState(() => errorUserName = "User Not Exist");
-                case "InvalidPassword":
-                  setState(() => errorUserPass = "Invalid Password");
-                case "Ok":
-                  {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ShowUserNote(
-                          userModel: user,
-                          notes: loginResponse.notes,
-                          isAdmin: false,
-                          users: const [],
-                        ),
-                      ),
-                    );
-                  }
-                case "WelcomeAdmin":
-                  {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ShowUserNote(
-                          userModel: user,
-                          notes: loginResponse.notes,
-                          isAdmin: true,
-                          users: loginResponse.users,
-                        ),
-                      ),
-                    );
-                  }
-              }
+              var controller = Get.put(ShowNoteController());
+              controller.fetchNotes();
+              Future.delayed(const Duration(milliseconds: 300), () {
+                switch (controller.message.value) {
+                  case "UserNotExist":
+                    loginController.errorUserName.value = "User Not Exist";
+                  case "InvalidPassword":
+                    loginController.errorUserPass.value = "Invalid Password";
+                  case "WelcomeAdmin":
+                    {
+                      Get.to(() => const ShowUserNote());
+                    }
+                  case "Ok":
+                    {
+                      Get.to(() => const ShowUserNote());
+                    }
+                }
+              });
             },
           ),
           const SizedBox(height: 25),
@@ -125,13 +118,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             child: const Text('SignUp'),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const RegisterPage(),
-                ),
-              );
-            },
+            onPressed: () => Get.to(() => const RegisterPage()),
           ),
         ],
       ),

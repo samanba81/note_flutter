@@ -26,24 +26,3 @@ class LoginResponse {
     return LoginResponse([], [], message);
   }
 }
-
-class RegisterResponse {
-  String message = "";
-
-  RegisterResponse(this.message);
-}
-
-class CreateNoteResponse {
-  String message;
-  List<Note> notes;
-
-  CreateNoteResponse(this.message, this.notes);
-}
-
-
-class EditNoteResponse{
-  String message;
-  List<Note> notes;
-
-  EditNoteResponse(this.message, this.notes);
-}

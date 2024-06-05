@@ -1,71 +1,72 @@
+import '../controllers/holder_user_controller.dart';
+import '../controllers/show_note_controller.dart';
 import '../screens/add_edit_note.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as dev;
-import 'package:note/api.dart';
+import 'package:get/get.dart';
 import '../models/note.dart';
 import '../models/user.dart';
+import '../api.dart';
 
-class ShowUserNote extends StatefulWidget {
-  const ShowUserNote({
-    super.key,
-    required this.userModel,
-    required this.notes,
-    required this.isAdmin,
-    required this.users,
-  });
+class ShowUserNote extends StatelessWidget {
+  const ShowUserNote({super.key});
 
-  final User userModel;
-  final List<Note> notes;
-  final List<User> users;
-  final bool isAdmin;
-
-  @override
-  State<ShowUserNote> createState() => _ShowUserNoteState();
-}
-
-class _ShowUserNoteState extends State<ShowUserNote> {
   @override
   Widget build(BuildContext context) {
+    final holderUser = Get.find<HolderUserController>();
+    final controller = Get.find<ShowNoteController>();
     return Scaffold(
-      floatingActionButton: widget.isAdmin
+      floatingActionButton: controller.isAdmin.value
           ? null
           : FloatingActionButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => AddNoteUser(
-                      userModel: User(
-                        -1,
-                        widget.userModel.userName,
-                        widget.userModel.userPass,
-                      ),
-                      noteModel: Note(
-                        -1,
-                        '',
-                        '',
-                        Colors.white.value.toRadixString(16),
-                        0,
-                      ),
-                    ),
-                  ),
-                );
-              },
+              onPressed: () =>
+                  Get.to(() => AddNoteUser(noteModel: Note.empty())),
               child: const Icon(Icons.add),
             ),
       appBar: AppBar(
-        title: Text(widget.isAdmin ? 'ADMIN PANEL' : widget.userModel.userName),
+        title: Obx(
+          () => Text(controller.isAdmin.value
+              ? 'ADMIN PANEL'
+              : holderUser.user.value.userName),
+        ),
         centerTitle: true,
       ),
-      body: Column(
-        children: notesWidget(widget.userModel, widget.notes, widget.isAdmin,
-            widget.users, context),
+      body: Obx(
+        () => Column(
+          children: notesWidget(
+            controller.notes,
+            controller.isAdmin.value,
+            controller.users,
+            context,
+          ),
+        ),
       ),
     );
   }
 }
 
+List<Widget> notesWidget(
+  List<Note> notes,
+  bool isAdmin,
+  List<User> users,
+  BuildContext context,
+) {
+  List<Widget> finalWidget = [];
+
+  for (Note notModel in notes) {
+    finalWidget.add(
+      notWidget(
+        notModel,
+        isAdmin,
+        users,
+        context,
+      ),
+    );
+  }
+
+  return finalWidget;
+}
+
 Widget notWidget(
-  User userModel,
   Note notModel,
   bool isAdmin,
   List<User> users,
@@ -104,32 +105,14 @@ Widget notWidget(
                 : Row(
                     children: [
                       IconButton(
-                        onPressed: () {
-                          dev.log(
-                              'click edit for ${userModel.userName} - edit note : ${notModel.id} title : ${notModel.title}');
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => AddNoteUser(
-                                userModel: User(
-                                  userModel.id,
-                                  userModel.userName,
-                                  userModel.userPass,
-                                ),
-                                noteModel: Note(
-                                  notModel.id,
-                                  notModel.title,
-                                  notModel.content,
-                                  notModel.color,
-                                  notModel.noteConnect,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: () =>
+                            Get.to(() => AddNoteUser(noteModel: notModel)),
                         icon: const Icon(Icons.edit),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          await ApiNote.deleteNote(notModel);
+                        },
                         icon: const Icon(Icons.delete),
                       )
                     ],
@@ -137,28 +120,4 @@ Widget notWidget(
           ],
         )),
   );
-}
-
-List<Widget> notesWidget(
-  User userModel,
-  List<Note> notes,
-  bool isAdmin,
-  List<User> users,
-  BuildContext context,
-) {
-  List<Widget> finalWidget = [];
-
-  for (Note notModel in notes) {
-    finalWidget.add(
-      notWidget(
-        userModel,
-        notModel,
-        isAdmin,
-        users,
-        context,
-      ),
-    );
-  }
-
-  return finalWidget;
 }
