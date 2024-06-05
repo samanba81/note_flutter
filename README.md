@@ -1,16 +1,17 @@
-# note
+this is a client for [note_django](https://github.com/samanba81/note_django)
 
-A new Flutter project.
+# version
+- number : 1
+- name : 1.0
 
-## Getting Started
+# info 
+ - have admin screen
+ - notes connected to account
+ - user can edit notes
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# tasks
+  - delete note by user on show_note screen
+  - use GetX controller for state management
+  - use client database(hive) for save userName-userPass user for ez login
+  - connect hive to GetX controller for change first screen to show_note
+  - use firebase for analyse users :)
